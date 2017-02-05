@@ -1,2 +1,2 @@
 # Auto-Emails-Script-Google-Apps-Script-
-A&amp;A
+Developing this script to allow for the sending of automatic email from a Google Account to multiple recipients simultaneously and automatically.
