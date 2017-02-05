@@ -1,6 +1,8 @@
 function authenticationApp() {
     SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
      .alert('Thank you for authenticating this app');
+  
+  
 }
 
 function onOpen() {
