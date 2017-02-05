@@ -1,8 +1,6 @@
 function authenticationApp() {
     SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
      .alert('Thank you for authenticating this app');
-  
-  
 }
 
 function onOpen() {
@@ -14,70 +12,78 @@ function onOpen() {
       //.addSubMenu(ui.createMenu('Sub-menu')
       //    .addItem('Second item', 'menuItem2'))
       .addToUi();
-    ui.createMenu('TRIGGERS')
+  ui.createMenu('CONFIG:TRIGGERS')
       .addItem('ENABLE TRIGGERS', 'enableTriggers')
-      .addSeparator()
-      //.addSubMenu(ui.createMenu('Sub-menu')
-      //    .addItem('Second item', 'menuItem2'))
+       .addSeparator()
+        //.addSubMenu(ui.createMenu('Sub-menu')
+        //    .addItem('Second item', 'menuItem2'))
       .addItem('DISABLE TRIGGERS', 'disableTriggers')
-      .addSeparator()
+       .addSeparator()
       .addItem('TRIGGERS STATUS', 'statusTriggers')
       .addToUi();
-    ui.createMenu('MANUAL EMAIL SEND')
-      .addItem('ENABLE TRIGGERS', 'enableTriggers')
-      .addSeparator()
+  ui.createMenu('SEND:MANUAL')
+      .addItem('EXECUTE:GLOBAL()', 'sendGlobal')
+      // .addSeparator()
       //.addSubMenu(ui.createMenu('Sub-menu')
       //    .addItem('Second item', 'menuItem2'))
-      .addItem('DISABLE TRIGGERS', 'disableTriggers')
-      .addSeparator()
-      .addItem('TRIGGERS STATUS', 'statusTriggers')
+      //.addItem('DISABLE TRIGGERS', 'disableTriggers')
+      // .addSeparator()
+      //.addItem('TRIGGERS STATUS', 'statusTriggers')
       .addToUi();
 }
+
+/*************************Global Variables*******************************/
+var emailSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email');
+
+var group1 = emailSheet.getRange('B2').getValue();
+var group2 = emailSheet.getRange('B10').getValue();
+var group3 = emailSheet.getRange('B18').getValue();
+var group4 = emailSheet.getRange('B26').getValue();
+
+
+/*************************Functions**************************************/
+
 
 function createContactGroups() {//Create the Contact Groups we're going to reference
   try {
-    var group14 = ContactsApp.getContactGroup('Auto-Email1()').getName();
-    SpreadsheetApp.getUi().alert('Auto-Email1() Group ALREADY EXISTS')
+    ContactsApp.getContactGroup(group1).getName();
+    SpreadsheetApp.getUi().alert(group1 +' Contact Group ALREADY EXISTS')
   } catch (err) {
-    ContactsApp.createContactGroup('Auto-Email1()');
-    SpreadsheetApp.getUi().alert('Auto-EMail1() Group SUCCESSFULLY CREATED');
+    ContactsApp.createContactGroup(group1);
+    SpreadsheetApp.getUi().alert(group1 + ' Contact Group SUCCESSFULLY CREATED');
   }
   try {
-    var group30 = ContactsApp.getContactGroup('Auto-Email2()').getName();
-    SpreadsheetApp.getUi().alert('Auto-Email2() Group ALREADY EXISTS')
+    ContactsApp.getContactGroup(group2).getName();
+    SpreadsheetApp.getUi().alert(group2 +' Contact group ALREADY EXISTS')
   } catch (err) {
-    ContactsApp.createContactGroup('Auto-Email2()');
-    SpreadsheetApp.getUi().alert('Auto-Email2() Group SUCCESSFULLY CREATED');
+    ContactsApp.createContactGroup(group2);
+    SpreadsheetApp.getUi().alert(group2 + ' Contact Group SUCCESSFULLY CREATED');
   }
   try {
-    var group60 = ContactsApp.getContactGroup('Auto-Email3()').getName();
-    SpreadsheetApp.getUi().alert('Auto-Email3() Group ALREADY EXISTS')
+    ContactsApp.getContactGroup(group3).getName();
+    SpreadsheetApp.getUi().alert(group3 + ' Contact Group ALREADY EXISTS')
   } catch (err) {
-    ContactsApp.createContactGroup('Auto-Email3()');
-    SpreadsheetApp.getUi().alert('Auto-Email3() Group SUCCESSFULLY CREATED');
+    ContactsApp.createContactGroup(group3);
+    SpreadsheetApp.getUi().alert(group3 + ' Contact Group SUCCESSFULLY CREATED');
   }
   try {
-    var groupGlobal = ContactsApp.getContactGroup('Global()').getName();
-    SpreadsheetApp.getUi().alert('Global() Group ALREADY EXISTS')
+    ContactsApp.getContactGroup(group4).getName();
+    SpreadsheetApp.getUi().alert(group4 + ' Contact Group ALREADY EXISTS')
   } catch (err) {
-    ContactsApp.createContactGroup('Global()');
-    SpreadsheetApp.getUi().alert('Global() Group SUCCESSFULLY CREATED');
+    ContactsApp.createContactGroup(group4);
+    SpreadsheetApp.getUi().alert(group4 + ' Contact Group SUCCESSFULLY CREATED');
   }
 }
-//ends function createContactGroups
+
+//function getClientInfoSet() {
 
 
-function enableTriggers() {
-  SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-     .alert('You clicked the enable triggers menu item!');
+
+function quotaQuery() {
+Logger.log('Email Message Quota: '+ messageQuota);
 }
 
-function disableTriggers() {
-  SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-     .alert('You clicked the disable triggers menu item!');
-}
+function sendGlobal() {
+var messageQuota = MailApp.getRemainingDailyQuota();
 
-function statusTriggers() {
-  SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-     .alert('You clicked the status triggers menu item!');
 }
