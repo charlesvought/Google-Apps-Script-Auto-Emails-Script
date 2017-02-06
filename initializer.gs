@@ -11,24 +11,20 @@ function onOpen() {
       //.addSeparator()
       //.addSubMenu(ui.createMenu('Sub-menu')
       //    .addItem('Second item', 'menuItem2'))
+      //.addItem('DISABLE TRIGGERS', 'disableTriggers')
       .addToUi();
   ui.createMenu('CONFIG:TRIGGERS')
       .addItem('ENABLE TRIGGERS', 'enableTriggers')
        .addSeparator()
-        //.addSubMenu(ui.createMenu('Sub-menu')
-        //    .addItem('Second item', 'menuItem2'))
       .addItem('DISABLE TRIGGERS', 'disableTriggers')
        .addSeparator()
       .addItem('TRIGGERS STATUS', 'statusTriggers')
       .addToUi();
   ui.createMenu('SEND:MANUAL')
       .addItem('EXECUTE:GLOBAL()', 'sendGlobal')
-      // .addSeparator()
-      //.addSubMenu(ui.createMenu('Sub-menu')
-      //    .addItem('Second item', 'menuItem2'))
-      //.addItem('DISABLE TRIGGERS', 'disableTriggers')
-      // .addSeparator()
-      //.addItem('TRIGGERS STATUS', 'statusTriggers')
+      .addToUi();
+  ui.createMenu('QUERY')
+      .addItem('REMAINING EMAIL QUOTA', 'queryQuota')
       .addToUi();
 }
 
@@ -47,28 +43,28 @@ var group4 = emailSheet.getRange('B26').getValue();
 function createContactGroups() {//Create the Contact Groups we're going to reference
   try {
     ContactsApp.getContactGroup(group1).getName();
-    SpreadsheetApp.getUi().alert(group1 +' Contact Group ALREADY EXISTS')
+    SpreadsheetApp.getUi().alert(group1 +' Contact Group ALREADY EXISTS');
   } catch (err) {
     ContactsApp.createContactGroup(group1);
     SpreadsheetApp.getUi().alert(group1 + ' Contact Group SUCCESSFULLY CREATED');
   }
   try {
     ContactsApp.getContactGroup(group2).getName();
-    SpreadsheetApp.getUi().alert(group2 +' Contact group ALREADY EXISTS')
+    SpreadsheetApp.getUi().alert(group2 +' Contact group ALREADY EXISTS');
   } catch (err) {
     ContactsApp.createContactGroup(group2);
     SpreadsheetApp.getUi().alert(group2 + ' Contact Group SUCCESSFULLY CREATED');
   }
   try {
     ContactsApp.getContactGroup(group3).getName();
-    SpreadsheetApp.getUi().alert(group3 + ' Contact Group ALREADY EXISTS')
+    SpreadsheetApp.getUi().alert(group3 + ' Contact Group ALREADY EXISTS');
   } catch (err) {
     ContactsApp.createContactGroup(group3);
     SpreadsheetApp.getUi().alert(group3 + ' Contact Group SUCCESSFULLY CREATED');
   }
   try {
     ContactsApp.getContactGroup(group4).getName();
-    SpreadsheetApp.getUi().alert(group4 + ' Contact Group ALREADY EXISTS')
+    SpreadsheetApp.getUi().alert(group4 + ' Contact Group ALREADY EXISTS');
   } catch (err) {
     ContactsApp.createContactGroup(group4);
     SpreadsheetApp.getUi().alert(group4 + ' Contact Group SUCCESSFULLY CREATED');
@@ -77,13 +73,19 @@ function createContactGroups() {//Create the Contact Groups we're going to refer
 
 //function getClientInfoSet() {
 
-
-
-function quotaQuery() {
-Logger.log('Email Message Quota: '+ messageQuota);
+function sendGlobal() {
+var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group4));
+  
+for (i = 0; i < contactArray.length; i++) {
+GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), emailSheet.getRange('C26').getValue(), 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + emailSheet.getRange('C28').getValue());
+}
+  
+var firstName = contactArray[0].getFullName();
+var lastName = contactArray[0].getFamilyName();
+var contactEmail = contactArray[0].getPrimaryEmail();
+Logger.log(firstName + ' ' +  lastName + ' ' + contactEmail);
 }
 
-function sendGlobal() {
-var messageQuota = MailApp.getRemainingDailyQuota();
-
+function queryQuota() {
+SpreadsheetApp.getUi().alert('Total Emails Remaining = ' + MailApp.getRemainingDailyQuota());
 }
