@@ -1,11 +1,5 @@
-function authenticationApp() {
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-     .alert('Thank you for authenticating this app');
-}
-
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
-  // Or DocumentApp or FormApp.
   ui.createMenu('SETUP')
       .addItem('CREATE CONTACT GROUPS', 'createContactGroups')
       //.addSeparator()
@@ -25,6 +19,9 @@ function onOpen() {
       .addToUi();
   ui.createMenu('QUERY')
       .addItem('REMAINING EMAIL QUOTA', 'queryQuota')
+          .addSeparator()
+          .addSubMenu(ui.createMenu('TEST FIELD CAPTURE')
+          .addItem('GLOBAL() CONTACTS', 'group4FieldTest'))
       .addToUi();
 }
 
@@ -35,10 +32,7 @@ var group1 = emailSheet.getRange('B2').getValue();
 var group2 = emailSheet.getRange('B10').getValue();
 var group3 = emailSheet.getRange('B18').getValue();
 var group4 = emailSheet.getRange('B26').getValue();
-
-
-/*************************Functions**************************************/
-
+/************************************************************************/
 
 function createContactGroups() {//Create the Contact Groups we're going to reference
   try {
@@ -71,21 +65,48 @@ function createContactGroups() {//Create the Contact Groups we're going to refer
   }
 }
 
-//function getClientInfoSet() {
-
 function sendGlobal() {
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group4));
-  
-for (i = 0; i < contactArray.length; i++) {
-GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), emailSheet.getRange('C26').getValue(), 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + emailSheet.getRange('C28').getValue());
+    if (MailApp.getRemainingDailyQuota() > contactArray.length) {
+       for (i = 0; i < contactArray.length; i++) {
+        GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), emailSheet.getRange('C26').getValue(), 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + emailSheet.getRange('C28').getValue() + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
+        }
+    } else {
+      GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Email Failed', 'Your inquiry was unable to complete');
+      SpreadsheetApp.getUi().alert('Unable to Send at this time');
+ }
 }
-  
+/******************************TESTING FUNCTIONS*************************/
+
+function testFieldCapture(groupName) {
+var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(groupName));
+var contactInfoArray = [];
+var alertText = '';
+  for (i = 0; i < contactArray.length; i++) {
+    contactInfoArray.push('First Name = ' + contactArray[i].getGivenName() + '\r\n' + 'Last Name = ' + contactArray[i].getFamilyName() + '\r\n' + 'Email: ' + contactArray[i].getPrimaryEmail() + '\r\n\r\n');
+    alertText = alertText + contactInfoArray[i];
+  }
+SpreadsheetApp.getUi().alert(alertText);
+}
+
+function group4FieldTest() {
+  testFieldCapture(group4);
+}
+/******************************QUERY FUNCTIONS*************************/
+function queryQuota() {
+SpreadsheetApp.getUi().alert('Total Emails Remaining = ' + MailApp.getRemainingDailyQuota());
+}
+/******************************MISC FUNCTIONS**************************/
+function authenticationApp() {
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+     .alert('Thank you for authenticating this application.');
+}
+function testFunction() {
+var textlink = Session.getEffectiveUser();
 var firstName = contactArray[0].getFullName();
 var lastName = contactArray[0].getFamilyName();
 var contactEmail = contactArray[0].getPrimaryEmail();
 Logger.log(firstName + ' ' +  lastName + ' ' + contactEmail);
+Logger.log(textlink);
 }
-
-function queryQuota() {
-SpreadsheetApp.getUi().alert('Total Emails Remaining = ' + MailApp.getRemainingDailyQuota());
-}
+/**********************************************************************/
