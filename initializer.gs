@@ -10,13 +10,14 @@ function onOpen() {
       .addToUi();
   ui.createMenu('CONFIG:TRIGGERS')
       .addItem('ENABLE TRIGGERS', 'enableTriggers')
-       .addSeparator()
       .addItem('DISABLE TRIGGERS', 'disableTriggers')
-       .addSeparator()
       .addItem('TRIGGERS STATUS', 'statusTriggers')
       .addToUi();
   ui.createMenu('SEND:MANUAL')
       .addItem('EXECUTE:GLOBAL()', 'sendGroup1')
+      .addItem('EXECUTE:AUTO-EMAIL1()', 'sendGroup2')
+      .addItem('EXECUTE:AUTO-EMAIL2()', 'sendGroup3')
+      .addItem('EXECUTE:AUTO-EMAIL3()', 'sendGroup4')
       .addToUi();
   ui.createMenu('TESTING')
       .addItem('GET EMAIL QUOTA', 'queryQuota')
@@ -27,6 +28,7 @@ function onOpen() {
             .addItem('AUTO-EMAIL2() CONTACTS', 'group3ContactTest')
             .addItem('AUTO-EMAIL3() CONTACTS', 'group4ContactTest'))
       .addToUi();
+  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile('sidebar.html').setTitle('Auto-Email Reference & Change Log'));
 }
 /*************************Global Variables*******************************/
 //Declare Sheets
@@ -152,7 +154,6 @@ function testEmailCapture(groupName) {
   }
 }
 */
-
 function testContactCapture(groupName) {
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(groupName));
 var contactInfoArray = [];
