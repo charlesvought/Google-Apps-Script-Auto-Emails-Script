@@ -35,6 +35,7 @@ function onOpen() {
 var emailSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email');
 var dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data');
 var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+var sdfasdf = ''
 //Group1 = Global()
 var group1 = emailSheet.getRange('B2').getValue();
 var group1Subject = emailSheet.getRange('C2').getValue();
@@ -104,7 +105,7 @@ function createContactGroups() {//Create the Contact Groups we're going to refer
 /******************************EMAIL EXECUTION FUNCTIONS*************************/
 function sendGroup1() {//Global() Contact Group
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group1));
-  if (groupValidation(group1, contactArray) == true) {
+  if (fieldValidation(group1, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
     GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
@@ -115,7 +116,7 @@ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(gr
 }
 function sendGroup2() {//Global() Contact Group
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group2));
-  if (groupValidation(group2, contactArray) == true) {
+  if (fieldValidation(group2, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
     GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
@@ -126,7 +127,7 @@ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(gr
 }
 function sendGroup3() {//Global() Contact Group
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group3));
-  if (groupValidation(group3, contactArray) == true) {
+  if (fieldValidation(group3, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
     GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
@@ -137,7 +138,7 @@ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(gr
 }
 function sendGroup4() {//Global() Contact Group
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group4));
-  if (groupValidation(group4, contactArray) == true) {
+  if (fieldValidation(group4, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
     GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
@@ -162,7 +163,7 @@ var alertContacts = '';
     contactInfoArray.push('First Name = ' + contactArray[i].getGivenName() + '\r\n' + 'Last Name = ' + contactArray[i].getFamilyName() + '\r\n' + 'Email: ' + contactArray[i].getPrimaryEmail() + '\r\n\r\n');
     alertContacts = alertContacts + contactInfoArray[i];
   }
-  SpreadsheetApp.getUi().alert('Pass Validation = ' + groupValidation(groupName, contactArray) + '\r\n' + 'Total # of Contacts in ' + groupName + ': ' + contactArray.length + '\r\n' + 'Total # of Email Quota remaining: ' + MailApp.getRemainingDailyQuota() + '\r\n\r\n' + alertContacts);
+  SpreadsheetApp.getUi().alert('Pass Validation = ' + fieldValidation(groupName, contactArray) + '\r\n' + 'Total # of Contacts in ' + groupName + ': ' + contactArray.length + '\r\n' + 'Total # of Email Quota remaining: ' + MailApp.getRemainingDailyQuota() + '\r\n\r\n' + alertContacts);
 }
 function group1ContactTest() {
   testContactCapture(group1);
