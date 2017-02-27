@@ -30,12 +30,16 @@ function onOpen() {
       .addToUi();
   SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile('sidebar.html').setTitle('Auto-Email Reference & Change Log'));
 }
-/*************************Global Variables*******************************/
+/*************************onLoad*******************************/
 //Declare Sheets
 var emailSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email');
 var dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data');
 var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
-var sdfasdf = ''
+//Global Variables
+var todaysDate = Utilities.formatDate(new Date(), "EST", "MM-dd-yyyy");
+var currentTime = Utilities.formatDate(new Date(), "EST", "HH:mm:ss");
+var userEmail = Session.getActiveUser().getEmail();
+var username = extractTextBefore(userEmail,"@");
 //Group1 = Global()
 var group1 = emailSheet.getRange('B2').getValue();
 var group1Subject = emailSheet.getRange('C2').getValue();
@@ -53,6 +57,22 @@ var group4 = emailSheet.getRange('B26').getValue();
 var group4Subject = emailSheet.getRange('C26').getValue();
 var group4Body = emailSheet.getRange('C28').getValue();
 /*************************Populate on Load*******************************/
+var yellowColor = '#FFF000';
+var redColor = '#FF0000';
+var grayColor = '#CACACA';
+var blueColor = '#00FFFF';
+emailSheet.getRange('A1')
+  .setValue('INFO');
+emailSheet.getRange('A2')
+  .setValue('DATE:')
+  .setBackground(grayColor);
+emailSheet.getRange('A3')
+  .setValue(todaysDate);
+emailSheet.getRange('A4')
+.setValue('TIME:')
+.setBackground(grayColor);
+emailSheet.getRange('A5')
+  .setValue(currentTime);
 emailSheet.getRange('B1')
   .setValue('GROUP NAME');
 emailSheet.getRange('D1')
@@ -114,37 +134,51 @@ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(gr
     SpreadsheetApp.getUi().alert('Unable to Send at this time');
  }
 }
-function sendGroup2() {//Global() Contact Group
+function sendGroup2() {//Auto-Email1()
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group2));
   if (fieldValidation(group2, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
-    GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
+    GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group2Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group2Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
   } else {
     GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Email Failed', 'Your inquiry was unable to complete');
     SpreadsheetApp.getUi().alert('Unable to Send at this time');
  }
 }
-function sendGroup3() {//Global() Contact Group
+function sendGroup3() {//Auto-Email2()
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group3));
   if (fieldValidation(group3, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
-    GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
+    GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group3Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group3Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
   } else {
     GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Email Failed', 'Your inquiry was unable to complete');
     SpreadsheetApp.getUi().alert('Unable to Send at this time');
  }
 }
-function sendGroup4() {//Global() Contact Group
+function sendGroup4() {//Auto-Email3()
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group4));
   if (fieldValidation(group4, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
-    GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group1Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
+      GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group4Subject, group4Body, {
+        htmlBody:'<p>'+'Dear ' + contactArray[i].getGivenName() + ','
+                       + '</p><p>'
+                       + group4Body
+                       + '</p><p></p><p>'
+                       + 'Sincerely,'
+                       + '<br />'
+                       + 'Sandy Abbott'
+                       + '<br />'
+                       + 'Abbott & Associates'
+                       + '<br />'
+                       + '<a href="http://www.abbottcreditsolutions.com">www.Abbott Credit Solutions.com</a>'
+                       + '</p>'
+                       + getTracker()
+      });
      }
   } else {
-    GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Email Failed', 'Your inquiry was unable to complete');
-    SpreadsheetApp.getUi().alert('Unable to Send at this time');
+    GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Refer to the Log for details.');
+    SpreadsheetApp.getUi().alert('function was unable to complete. Refer to the Log for details.'); 
  }
 }
 /******************************TESTING FUNCTIONS*********************************/
@@ -189,5 +223,10 @@ function authenticationApp() {
 function writeLog() {
 var logEntry = Logger.getLog();
 logSheet.appendRow([logEntry]);
+}
+function extractTextBefore(string, character) {
+  var locateCharacter = string.search(character);
+  var targetText = string.slice(0, locateCharacter);
+return targetText
 }
 /**********************************************************************/
