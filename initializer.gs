@@ -3,6 +3,7 @@ function onOpen() {
   ui.createMenu('SETUP')
       .addItem('CREATE CONTACT GROUPS', 'createContactGroups')
       .addItem('AUTHENTICATE APPLICATION', 'authenticationApp')
+      .addItem('RE-INITIALIZE CELLS', 'initializeCells')
       //.addSeparator()
       //.addSubMenu(ui.createMenu('Sub-menu')
       //    .addItem('Second item', 'menuItem2'))
@@ -35,6 +36,7 @@ function onOpen() {
 var emailSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email');
 var dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data');
 var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+var trackingSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Tracking');
 //Global Variables
 var todaysDate = Utilities.formatDate(new Date(), "EST", "MM-dd-yyyy");
 var currentTime = Utilities.formatDate(new Date(), "EST", "HH:mm:ss");
@@ -44,23 +46,31 @@ var username = extractTextBefore(userEmail,"@");
 var group1 = emailSheet.getRange('B2').getValue();
 var group1Subject = emailSheet.getRange('C2').getValue();
 var group1Body = emailSheet.getRange('C4').getValue();
+var group1Campaign = emailSheet.getRange('B8').getValue();
 //Group2 = Auto-Email1()
 var group2 = emailSheet.getRange('B10').getValue();
 var group2Subject = emailSheet.getRange('C10').getValue();
 var group2Body = emailSheet.getRange('C12').getValue();
+var group2Campaign = emailSheet.getRange('B16').getValue();
 //Group3 = Auto-Email2()
 var group3 = emailSheet.getRange('B18').getValue();
 var group3Subject = emailSheet.getRange('C18').getValue();
 var group3Body = emailSheet.getRange('C20').getValue();
+var group3Campaign = emailSheet.getRange('B24').getValue();
 //Group4 = Auto-Email3()
 var group4 = emailSheet.getRange('B26').getValue();
 var group4Subject = emailSheet.getRange('C26').getValue();
 var group4Body = emailSheet.getRange('C28').getValue();
+var group4Campaign = emailSheet.getRange('B32').getValue();
 /*************************Populate on Load*******************************/
-var yellowColor = '#FFF000';
-var redColor = '#FF0000';
+var validCampaign = SpreadsheetApp.newDataValidation()
+  .requireValueInRange(dataSheet.getRange('A2:A50'))
+  .setAllowInvalid(false)
+  .setHelpText('Please select a valid campaign')
+  .build();
+function initializeCells() {
 var grayColor = '#CACACA';
-var blueColor = '#00FFFF';
+//email-sheet
 emailSheet.getRange('A1')
   .setValue('INFO');
 emailSheet.getRange('A2')
@@ -69,12 +79,28 @@ emailSheet.getRange('A2')
 emailSheet.getRange('A3')
   .setValue(todaysDate);
 emailSheet.getRange('A4')
-.setValue('TIME:')
-.setBackground(grayColor);
+  .setValue('TIME:')
+  .setBackground(grayColor);
 emailSheet.getRange('A5')
   .setValue(currentTime);
 emailSheet.getRange('B1')
   .setValue('GROUP NAME');
+emailSheet.getRange('B7')
+  .setValue('Select Campaign:');
+emailSheet.getRange('B8')
+  .setDataValidation(validCampaign);
+emailSheet.getRange('B15')
+  .setValue('Select Campaign:');
+emailSheet.getRange('B16')
+  .setDataValidation(validCampaign);
+emailSheet.getRange('B23')
+  .setValue('Select Campaign:');
+emailSheet.getRange('B24')
+  .setDataValidation(validCampaign);
+emailSheet.getRange('B31')
+  .setValue('Select Campaign:');
+emailSheet.getRange('B32')
+  .setDataValidation(validCampaign);
 emailSheet.getRange('D1')
   .setValue('SUBJECT LINE OF THE EMAIL');
 emailSheet.getRange('D9')
@@ -91,6 +117,12 @@ emailSheet.getRange('D19')
   .setValue('BODY OF THE EMAIL');
 emailSheet.getRange('D27')
   .setValue('BODY OF THE EMAIL');
+//data-sheet
+dataSheet.getRange('A1')
+  .setValue('CAMPAIGN')
+  .setBackground(grayColor);
+}
+
 /************************************************************************/
 function createContactGroups() {//Create the Contact Groups we're going to reference
   try {
@@ -152,12 +184,12 @@ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(gr
     GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group3Subject, 'Dear ' + contactArray[i].getGivenName() + ',' + '\r\n\r\n' + group3Body + '\r\n\r\n' + 'Sincerely,' + '\r\n' + 'Sandy Abbott' + '\r\n' + 'Abbott & Associates' + '\r\n' + 'www.abbottcreditsolutions.com');
      }
   } else {
-    GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Email Failed', 'Your inquiry was unable to complete');
+    GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Refer to the Log for details.');
     SpreadsheetApp.getUi().alert('Unable to Send at this time');
  }
 }
 function sendGroup4() {//Auto-Email3()
-var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group4));
+ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group4));
   if (fieldValidation(group4, contactArray) == true) {
     for (i = 0; i < contactArray.length; i++) {
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group4Subject, group4Body, {
@@ -171,9 +203,9 @@ var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(gr
                        + '<br />'
                        + 'Abbott & Associates'
                        + '<br />'
-                       + '<a href="http://www.abbottcreditsolutions.com">www.Abbott Credit Solutions.com</a>'
+                       + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
-                       + getTracker()
+                       + getTracker(group4Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group4Subject)
       });
      }
   } else {
@@ -195,22 +227,38 @@ var contactInfoArray = [];
 var alertContacts = '';
   for (i = 0; i < contactArray.length; i++) {
     contactInfoArray.push('First Name = ' + contactArray[i].getGivenName() + '\r\n' + 'Last Name = ' + contactArray[i].getFamilyName() + '\r\n' + 'Email: ' + contactArray[i].getPrimaryEmail() + '\r\n\r\n');
-    alertContacts = alertContacts + contactInfoArray[i];
+    alertContacts += contactInfoArray[i];
   }
-  SpreadsheetApp.getUi().alert('Pass Validation = ' + fieldValidation(groupName, contactArray) + '\r\n' + 'Total # of Contacts in ' + groupName + ': ' + contactArray.length + '\r\n' + 'Total # of Email Quota remaining: ' + MailApp.getRemainingDailyQuota() + '\r\n\r\n' + alertContacts);
+  SpreadsheetApp.getUi().alert('Pass Validation = ' 
+    + fieldValidation(groupName, contactArray)
+    + '\r\n'
+    + 'Total # of Contacts in '
+    + groupName
+    + ': '
+    + contactArray.length
+    + '\r\n'
+    + 'Total # of Email Quota remaining: '
+    + MailApp.getRemainingDailyQuota()
+    + '\r\n\r\n' + alertContacts
+  );
 }
+
 function group1ContactTest() {
   testContactCapture(group1);
 }
+
 function group2ContactTest() {
   testContactCapture(group2);
 }
+
 function group3ContactTest() {
   testContactCapture(group3);
 }
+
 function group4ContactTest() {
   testContactCapture(group4);
 }
+
 /******************************QUERY FUNCTIONS*************************/
 function queryQuota() {
 SpreadsheetApp.getUi().alert('Total Emails Remaining = ' + MailApp.getRemainingDailyQuota());
@@ -222,7 +270,8 @@ function authenticationApp() {
 }
 function writeLog() {
 var logEntry = Logger.getLog();
-logSheet.appendRow([logEntry]);
+logSheet.insertRowsAfter(1,1);
+logSheet.getRange('A2').setValue(logEntry);
 }
 function extractTextBefore(string, character) {
   var locateCharacter = string.search(character);

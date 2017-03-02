@@ -5,6 +5,10 @@ if(array.length > MailApp.getRemainingDailyQuota()) {
     passValidation = false;
     Logger.log('Failed fieldValidation: Insuffient Remaining Quota');
 }
+if(array.length == 0) {
+    passValidation = false;
+    Logger.log('Failed fieldValidation: No Contact(s) are present in ' + groupName);
+}
 for (i = 0; i < array.length; i++) {
    //Validate Provide Email address
    var validateEmail = array[i].getPrimaryEmail();
@@ -53,7 +57,7 @@ for (i = 0; i < array.length; i++) {
    }
     if (validateBody == '' || validateBody == null) {
       passValidation = false;
-      Logger.log('Failed fieldValidation: Email has invalid/blank Subject Field');
+      Logger.log('Failed fieldValidation: Email has invalid/blank Body Field');
    }
   }
 writeLog();
