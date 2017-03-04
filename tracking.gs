@@ -1,6 +1,7 @@
 function doGet(e) {
   var token = e.parameter.token;
   callTracker(token);
+  return HtmlService.createHtmlOutputFromFile('webpage.html');
 }
 
 function getTracker(campaignText, givenName, familyName, subjectLine) {
