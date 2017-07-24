@@ -72,6 +72,12 @@ var validCampaign = SpreadsheetApp.newDataValidation()
   .setAllowInvalid(false)
   .setHelpText('Please select a valid campaign')
   .build();
+
+var enableAttachments = SpreadsheetApp.newDataValidation()
+  .requireValueInList(['TRUE', 'FALSE'])
+  .setAllowInvalid(false)
+  .setHelpText('Please select a valid attachments indicator')
+  .build();
 /************************************************************************/
 var grayColor = '#CACACA';
 //email-sheet
@@ -90,25 +96,35 @@ emailSheet.getRange('A5')
 emailSheet.getRange('B1')
   .setValue('GROUP NAME');
 emailSheet.getRange('B5')
-  .setValue('Select Attachment:');
+  .setValue('Enable Attachment(s)');
+
+  emailSheet.getRange('B6')
+   .setDataValidation(enableAttachments);
+  emailSheet.getRange('B14')
+   .setDataValidation(enableAttachments);
+  emailSheet.getRange('B22')
+   .setDataValidation(enableAttachments);
+  emailSheet.getRange('B30')
+   .setDataValidation(enableAttachments);
+
 emailSheet.getRange('B7')
   .setValue('Select Campaign:');
 emailSheet.getRange('B8')
   .setDataValidation(validCampaign);
 emailSheet.getRange('B13')
-  .setValue('Select Attachment:');
+  .setValue('Enable Attachment(s)');
 emailSheet.getRange('B15')
   .setValue('Select Campaign:');
 emailSheet.getRange('B16')
   .setDataValidation(validCampaign);
 emailSheet.getRange('B21')
-  .setValue('Select Attachment:');
+  .setValue('Enable Attachment(s)');
 emailSheet.getRange('B23')
   .setValue('Select Campaign:');
 emailSheet.getRange('B24')
   .setDataValidation(validCampaign);
 emailSheet.getRange('B29')
-  .setValue('Select Attachment:');
+  .setValue('Enable Attachment(s)');
 emailSheet.getRange('B31')
   .setValue('Select Campaign:');
 emailSheet.getRange('B32')
@@ -164,6 +180,81 @@ function createContactGroups() {//Create the Contact Groups we're going to refer
     SpreadsheetApp.getUi().alert(group4 + ' Contact Group SUCCESSFULLY CREATED');
   }
 }
+
+
+/******************************DATA VALIDATION FUNCTIONS*************************/
+function fieldValidation(groupName, array) {
+var passValidation = true;
+  //validate the specifed groupName is a valid ContactsApp Group
+  if(ContactsApp.getContactGroup(groupName).getName() != groupName || ContactsApp.getContactGroup(groupName).getName() == null) {
+     passValidation = false;
+     Logger.log('Failed fieldValidation: The contact group name is invalid or has not been specified.');
+  }
+  //Validate Email Quota
+if(array.length > MailApp.getRemainingDailyQuota()) {
+    passValidation = false;
+    Logger.log('Failed fieldValidation: Insuffient Remaining Quota');
+}
+  //validate there are contacts in the specified group
+if(array.length == 0) {
+    passValidation = false;
+    Logger.log('Failed fieldValidation: No Contact(s) are present in ' + groupName);
+}
+  
+for (i = 0; i < array.length; i++) {
+   //Validate Provide Email address
+   var validateEmail = array[i].getPrimaryEmail();
+   var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+   //Validate givenName is populated
+   var validateGivenName = array[i].getGivenName();
+   //Validate Family Name is populated
+   var validateFamilyName = array[i].getFamilyName();
+   //Validate Subject Line
+   switch(groupName) {
+     case 'Global()':
+       var validateSubject = group1Subject;
+       var validateBody = group1Body;
+       break;
+     case 'Auto-Email1()':
+       var validateSubject = group2Subject;
+       var validateBody = group2Body;
+       break;
+     case 'Auto-Email2()':
+       var validateSubject = group3Subject;
+       var validateBody = group3Body;
+       break;
+     case 'Auto-Email3()':
+       var validateSubject = group4Subject;
+       var validateBody = group4Body;
+       break;
+     default:
+       var passValidation = false;
+       Logger.log('Failed fieldValidation: groupName needs to be added to fieldValidation parameters!');
+   }
+   if (emailPattern.test(validateEmail) == false) {
+      passValidation = false;
+      Logger.log('Failed fieldValidation: Contact has invalid/blank e-mail address in ' + groupName);
+   }
+   if (validateGivenName == '' || validateGivenName == null) {
+      passValidation = false;
+      Logger.log('Failed fieldValidation: Contact has invalid/blank Given Name in ' + groupName);
+   }
+   if (validateFamilyName == '' || validateFamilyName == null) {
+      passValidation = false;
+      Logger.log('Failed fieldValidation: Contact has invalid/blank Family Name in ' + groupName);
+   }
+   if (validateSubject == '' || validateSubject == null) {
+      passValidation = false;
+      Logger.log('Failed fieldValidation: Email has invalid/blank Subject Field');
+   }
+    if (validateBody == '' || validateBody == null) {
+      passValidation = false;
+      Logger.log('Failed fieldValidation: Email has invalid/blank Body Field');
+   }
+  }
+writeLog();
+return passValidation
+}
 /******************************EMAIL EXECUTION FUNCTIONS*************************/
 function sendgroup1() {//Auto-Email3()
  var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(group1));
@@ -185,23 +276,22 @@ function sendgroup1() {//Auto-Email3()
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
                        + getTracker(group1Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group1Subject);
-      if (group1Attachment1 == '') {      
+     if (group1Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, group1Body, {
-        htmlBody:      emailBody,
-         //attachments: [DriveApp.getFilesByName(group1Attachment1).next().getBlob()]
-         });
-      } else {
+        htmlBody: emailBody,
+          });
+      } else  if (group1Attachment1 == true){
         GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, group1Body, {
-        htmlBody:      emailBody,
-         attachments: [DriveApp.getFilesByName(group1Attachment1).next().getBlob()]
+        htmlBody: emailBody,
+         attachments: queryAttachments('group1')
       }
      );
     }
    }
     SpreadsheetApp.getUi().alert('Email(s) have successfully executed!');
   } else {
-    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Refer to the Log for details.');
-    SpreadsheetApp.getUi().alert('function was unable to complete. Refer to the Log for details.'); 
+        GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Please refer to the log below: \r\n\r\n' + Logger.getLog());
+    SpreadsheetApp.getUi().alert('Auto-Emails-App was unable to complete the operation. Please refer to the log below: \r\n\r\n' + Logger.getLog()); 
  }
 }
 
@@ -225,23 +315,23 @@ function sendgroup2() {//Auto-Email3()
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
                        + getTracker(group2Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group2Subject);
-      if (group2Attachment1 == '') {      
+      if (group2Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group2Subject, group2Body, {
-        htmlBody:      emailBody,
-         //attachments: [DriveApp.getFilesByName(group2Attachment1).next().getBlob()]
+        htmlBody: emailBody,
+         //attachments: [DriveApp.getFilesByName(group4Attachment1).next().getBlob()]
          });
-      } else {
+      } else  if (group2Attachment1 == true){
         GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group2Subject, group2Body, {
-        htmlBody:      emailBody,
-         attachments: [DriveApp.getFilesByName(group2Attachment1).next().getBlob()]
+        htmlBody: emailBody,
+         attachments: queryAttachments('group2')
       }
      );
     }
    }
     SpreadsheetApp.getUi().alert('Email(s) have successfully executed!');
   } else {
-    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Refer to the Log for details.');
-    SpreadsheetApp.getUi().alert('function was unable to complete. Refer to the Log for details.'); 
+        GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Please refer to the log below: \r\n\r\n' + Logger.getLog());
+    SpreadsheetApp.getUi().alert('Auto-Emails-App was unable to complete the operation. Please refer to the log below: \r\n\r\n' + Logger.getLog());
  }
 }
 
@@ -265,24 +355,23 @@ function sendgroup3() {//Auto-Email3()
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
                        + getTracker(group3Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group3Subject);
-      if (group3Attachment1 == '') {      
+    if (group3Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group3Subject, group3Body, {
-        htmlBody:      emailBody,
-         //attachments: [DriveApp.getFilesByName(group3Attachment1).next().getBlob()]
-         });
-      } else {
+        htmlBody: emailBody,
+           });
+      } else  if (group3Attachment1 == true){
         GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group3Subject, group3Body, {
-        htmlBody:      emailBody,
-         attachments: [DriveApp.getFilesByName(group3Attachment1).next().getBlob()]
+        htmlBody: emailBody,
+         attachments: queryAttachments('group3')
       }
      );
     }
    }
     SpreadsheetApp.getUi().alert('Email(s) have successfully executed!');
   } else {
-    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Refer to the Log for details.');
-    SpreadsheetApp.getUi().alert('function was unable to complete. Refer to the Log for details.'); 
- }
+    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Please refer to the log below: \r\n\r\n' + Logger.getLog());
+    SpreadsheetApp.getUi().alert('Auto-Emails-App was unable to complete the operation. Please refer to the log below: \r\n\r\n' + Logger.getLog());
+  }
 }
 
 function sendGroup4() {//Auto-Email3()
@@ -305,31 +394,25 @@ function sendGroup4() {//Auto-Email3()
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
                        + getTracker(group4Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group4Subject);
-      if (group4Attachment1 == '') {      
+      if (group4Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group4Subject, group4Body, {
-        htmlBody:      emailBody,
-         //attachments: [DriveApp.getFilesByName(group4Attachment1).next().getBlob()]
-         });
-      } else {
+        htmlBody: emailBody,
+             });
+      } else  if (group4Attachment1 == true){
         GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group4Subject, group4Body, {
-        htmlBody:      emailBody,
-         attachments: [DriveApp.getFilesByName(group4Attachment1).next().getBlob()]
+        htmlBody: emailBody,
+         attachments: queryAttachments('group4')
       }
      );
     }
    }
     SpreadsheetApp.getUi().alert('Email(s) have successfully executed!');
   } else {
-    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Refer to the Log for details.');
-    SpreadsheetApp.getUi().alert('function was unable to complete. Refer to the Log for details.'); 
+    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Please refer to the log below: \r\n\r\n' + Logger.getLog());
+    SpreadsheetApp.getUi().alert('Auto-Emails-App was unable to complete the operation. Please refer to the log below: \r\n\r\n' + Logger.getLog()); 
  }
 }
 /******************************TESTING FUNCTIONS*********************************/
-/*
-function testEmailCapture(groupName) {
-  SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutputFromFile(group), title)
-}
-*/
 function testContactCapture(groupName) {
 var contactArray = ContactsApp.getContactsByGroup(ContactsApp.getContactGroup(groupName));
 var contactInfoArray = [];
@@ -357,7 +440,8 @@ var alertContacts = '';
     + '\r\n'
     + 'Total # of Email Quota remaining: '
     + MailApp.getRemainingDailyQuota()
-    + '\r\n\r\n' + alertContacts
+    + '\r\n\r\n'
+    + alertContacts
   );
 }
 
@@ -405,26 +489,35 @@ function queryQuota() {
 SpreadsheetApp.getUi().alert('Total Emails Remaining = ' + MailApp.getRemainingDailyQuota());
 }
 
-function buildAttachmentList() {
-var attachmentSelection = SpreadsheetApp.newDataValidation()
-  .requireValueInList(queryFileNames(), true)
-  .setAllowInvalid(false)
-  .setHelpText('Please select attachment file')
-  .build();
-function queryFileNames() {
+function queryAttachments(groupIdentifer) {
   var fileNameArray = [];
-  var files = DriveApp.getFolderById('0B5AX8tprgBH8ejR2Q1pxbDM2MFU').getFiles();
-  while (files.hasNext()) {
-  fileNameArray.push(files.next().getName());
-  }
+switch(groupIdentifer) {
+    case 'group1':
+      var files = DriveApp.getFolderById('0B5AX8tprgBH8OVZHSjNyRGYxYjQ').getFiles();
+      while (files.hasNext()) {
+      fileNameArray.push(DriveApp.getFileById(files.next().getId()));
+     }
+        break;
+    case 'group2':
+      var files = DriveApp.getFolderById('0B5AX8tprgBH8dkZQX2J1OXlzNmc').getFiles();
+      while (files.hasNext()) {
+      fileNameArray.push(DriveApp.getFileById(files.next().getId()));
+     }
+        break;
+    case 'group3':
+      var files = DriveApp.getFolderById('0B5AX8tprgBH8eU5pYWwxb3dTUkk').getFiles();
+      while (files.hasNext()) {
+      fileNameArray.push(DriveApp.getFileById(files.next().getId()));
+     }
+        break;
+    case 'group4':
+      var files = DriveApp.getFolderById('0B5AX8tprgBH8NmY4YjdTYm9sTFU').getFiles();
+      while (files.hasNext()) {
+      fileNameArray.push(DriveApp.getFileById(files.next().getId()));
+     }
+        break;
+    default:
+        break
+}
   return fileNameArray
- }
-  emailSheet.getRange('B6')
-   .setDataValidation(attachmentSelection);
-  emailSheet.getRange('B14')
-   .setDataValidation(attachmentSelection);
-  emailSheet.getRange('B22')
-   .setDataValidation(attachmentSelection);
-  emailSheet.getRange('B30')
-   .setDataValidation(attachmentSelection);
 }
