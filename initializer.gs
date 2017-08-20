@@ -16,10 +16,10 @@ function onOpen() {
       .addItem('TRIGGERS STATUS', 'statusTriggers')
       .addToUi();
   ui.createMenu('SEND:MANUAL')
-      .addItem('EXECUTE:GLOBAL()', 'sendGroup1')
-      .addItem('EXECUTE:AUTO-EMAIL1()', 'sendGroup2')
-      .addItem('EXECUTE:AUTO-EMAIL2()', 'sendGroup3')
-      .addItem('EXECUTE:AUTO-EMAIL3()', 'sendGroup4')
+      .addItem('EXECUTE:GLOBAL()', 'sendgroup1')
+      .addItem('EXECUTE:AUTO-EMAIL1()', 'sendgroup2')
+      .addItem('EXECUTE:AUTO-EMAIL2()', 'sendgroup3')
+      .addItem('EXECUTE:AUTO-EMAIL3()', 'sendgroup4')
       .addToUi();
   ui.createMenu('TESTING')
       .addItem('GET EMAIL QUOTA', 'queryQuota')
@@ -35,8 +35,10 @@ function onOpen() {
 //Declare Sheets
 var emailSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email');
 var dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data');
-var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log').protect().setWarningOnly(true);
-var trackingSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Tracking').protect().setWarningOnly(true);
+var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+var trackingSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Tracking');
+SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log').protect().setWarningOnly(true);
+SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Tracking').protect().setWarningOnly(true);
 //Global Variables
 var todaysDate = Utilities.formatDate(new Date(), "EST", "MM-dd-yyyy");
 var currentTime = Utilities.formatDate(new Date(), "EST", "HH:mm:ss");
@@ -474,8 +476,8 @@ function showSideBar() {
 function writeLog() {
 var logEntry = Logger.getLog();
   if (logEntry != '') {
-logSheet.insertRowsAfter(1,1);
-logSheet.getRange('A2').setValue(logEntry);
+    logSheet.insertRowsAfter(1,1);
+    logSheet.getRange('A2').setValue(logEntry);
   }
 }
 
@@ -520,4 +522,9 @@ switch(groupIdentifer) {
         break
 }
   return fileNameArray
+}
+
+function test() {
+  
+  
 }
