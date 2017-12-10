@@ -29,6 +29,9 @@ function onOpen() {
             .addItem('AUTO-EMAIL1() CONTACTS', 'group2ContactTest')
             .addItem('AUTO-EMAIL2() CONTACTS', 'group3ContactTest')
             .addItem('AUTO-EMAIL3() CONTACTS', 'group4ContactTest'))
+       .addToUi();
+  ui.createMenu('ARCHIVE')
+      .addItem('GENERATE PDF OF SENT MESSAGE', 'messagePDF')      
       .addToUi();
 }
 /*************************onLoad*******************************/
@@ -74,7 +77,6 @@ var validCampaign = SpreadsheetApp.newDataValidation()
   .setAllowInvalid(false)
   .setHelpText('Please select a valid campaign')
   .build();
-
 var enableAttachments = SpreadsheetApp.newDataValidation()
   .requireValueInList(['TRUE', 'FALSE'])
   .setAllowInvalid(false)
@@ -183,10 +185,10 @@ function createContactGroups() {//Create the Contact Groups we're going to refer
   }
 }
 
-
 /******************************DATA VALIDATION FUNCTIONS*************************/
 function fieldValidation(groupName, array) {
 var passValidation = true;
+  
   //validate the specifed groupName is a valid ContactsApp Group
   if(ContactsApp.getContactGroup(groupName).getName() != groupName || ContactsApp.getContactGroup(groupName).getName() == null) {
      passValidation = false;
@@ -231,7 +233,7 @@ for (i = 0; i < array.length; i++) {
        break;
      default:
        var passValidation = false;
-       Logger.log('Failed fieldValidation: groupName needs to be added to fieldValidation parameters!');
+       Logger.log('Failed fieldValidation: groupName needs to be added to Field Validation parameters!');
    }
    if (emailPattern.test(validateEmail) == false) {
       passValidation = false;
@@ -271,13 +273,18 @@ function sendgroup1() {//Auto-Email3()
                        + '</p><p></p><p>'
                        + 'Sincerely,'
                        + '<br />'
+                       + '<br />'
+                       + '<a href="http://www.abbottcreditsolutions.com"><img src="https://lh3.googleusercontent.com/6VT4Q9Hwzq26K1FMKwxxiq-2QHPE0R0Obxdu6034z_0_aibb3asyqx6YEChcLYqvNl615zINjhGSjFIA7tcsWt-6_IreM1J4ZhwWsjK9rx848RUmKEXpPnS9xtb8wuR6f15NKfBgHw" /</a>'
+                /*
                        + 'Sandy Abbott'
                        + '<br />'
                        + 'Abbott & Associates'
                        + '<br />'
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
-                       + getTracker(group1Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group1Subject);
+                       
+                */
+                       + getTracker(group1Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group1Subject,  contactArray[i].getPrimaryEmail());
      if (group1Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group1Subject, group1Body, {
         htmlBody: emailBody,
@@ -292,8 +299,8 @@ function sendgroup1() {//Auto-Email3()
    }
     SpreadsheetApp.getUi().alert('Email(s) have successfully executed!');
   } else {
-        GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Please refer to the log below: \r\n\r\n' + Logger.getLog());
-    SpreadsheetApp.getUi().alert('Auto-Emails-App was unable to complete the operation. Please refer to the log below: \r\n\r\n' + Logger.getLog()); 
+    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Auto-Email-App: Automated Message (Failure to Execute)', 'An email-send function was unable to execute. Please refer to the log below: \r\n\r\n' + Logger.getLog());
+    SpreadsheetApp.getUi().alert('Auto-Emails-App was unable to complete the operation. Please refer to the log below: \r\n\r\n' + Logger.getLog());
  }
 }
 
@@ -316,7 +323,7 @@ function sendgroup2() {//Auto-Email3()
                        + '<br />'
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
-                       + getTracker(group2Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group2Subject);
+                       + getTracker(group2Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group2Subject, contactArray[i].getPrimaryEmail());
       if (group2Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group2Subject, group2Body, {
         htmlBody: emailBody,
@@ -356,7 +363,7 @@ function sendgroup3() {//Auto-Email3()
                        + '<br />'
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
-                       + getTracker(group3Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group3Subject);
+                       + getTracker(group3Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group3Subject,  contactArray[i].getPrimaryEmail());
     if (group3Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group3Subject, group3Body, {
         htmlBody: emailBody,
@@ -395,7 +402,7 @@ function sendGroup4() {//Auto-Email3()
                        + '<br />'
                        + '<a href="http://www.abbottcreditsolutions.com">www.abbottcreditsolutions.com</a>'
                        + '</p>'
-                       + getTracker(group4Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group4Subject);
+                       + getTracker(group4Campaign, contactArray[i].getGivenName(), contactArray[i].getFamilyName(), group4Subject,  contactArray[i].getPrimaryEmail());
       if (group4Attachment1 !== true) {      
       GmailApp.sendEmail(contactArray[i].getPrimaryEmail(), group4Subject, group4Body, {
         htmlBody: emailBody,
@@ -522,9 +529,4 @@ switch(groupIdentifer) {
         break
 }
   return fileNameArray
-}
-
-function test() {
-  
-  
 }
